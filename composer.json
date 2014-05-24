@@ -2,7 +2,7 @@
     "name": "helhum/t3satis",
     "description": "Repository Generator with support for TYPO3 CMS extension (git) repositories",
     "keywords": ["package", "repository", "generator", "TYPO3 CMS"],
-    "homepage": "https://github.com/composer/satis",
+    "homepage": "https://github.com/helhum/t3satis",
     "type": "library",
     "license": "MIT",
     "authors": [
