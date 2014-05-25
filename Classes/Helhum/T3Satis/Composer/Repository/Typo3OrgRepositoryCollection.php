@@ -26,19 +26,27 @@ namespace Helhum\T3Satis\Composer\Repository;
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
-use Composer\Config;
-use Composer\EventDispatcher\EventDispatcher;
-use Composer\IO\IOInterface;
-use Composer\Repository\VcsRepository;
 
 /**
- * Class Typo3ExtensionRepository
+ * Class Typo3OrgRepositoryCollection
  */
-class Typo3ExtensionRepository extends VcsRepository {
+class Typo3OrgRepositoryCollection {
 
-	public function __construct(array $repoConfig, IOInterface $io, Config $config, EventDispatcher $dispatcher = null, array $drivers = null) {
-		parent::__construct($repoConfig, $io, $config, $dispatcher, $drivers);
-		$this->drivers['t3git'] = 'Helhum\T3Satis\Composer\Repository\Vcs\Typo3GitDriver';
+	public function fetchRepositoryConfiguration() {
+		return array(
+			array(
+				'type' => 't3git',
+				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/news.git'
+			),
+			array(
+				'type' => 't3git',
+				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/extension_builder.git'
+			),
+			array(
+				'type' => 't3git',
+				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/gridelements.git'
+			),
+		);
 	}
 
 } 

@@ -36,10 +36,30 @@ use Composer\Repository;
  */
 class Factory extends \Composer\Factory {
 
+	protected $repoCollectionClasses = array(
+		't3orgit' => 'Helhum\T3Satis\Composer\Repository\Typo3OrgRepositoryCollection'
+	);
+
 	protected function createRepositoryManager(IOInterface $io, Config $config, EventDispatcher $eventDispatcher = null) {
 		$rm = parent::createRepositoryManager($io, $config, $eventDispatcher);
 
 		$rm->setRepositoryClass('t3git', 'Helhum\T3Satis\Composer\Repository\Typo3ExtensionRepository');
+
+		$repoCollections = $config->get('repository-collections');
+
+		if ($repoCollections && is_array($repoCollections)) {
+			foreach ($repoCollections as $repoCollection) {
+				if (!isset($this->repoCollectionClasses[$repoCollection['type']])) {
+					throw new \UnexpectedValueException('The collection type ' . $repoCollection['type'] . ' is unkown!');
+				}
+
+				$collectionClass = $this->repoCollectionClasses[$repoCollection['type']];
+
+				$collection = new $collectionClass();
+				$repos = $collection->fetchRepositoryConfiguration();
+				$config->merge(array('repositories' => $repos));
+			}
+		}
 
 		return $rm;
 	}

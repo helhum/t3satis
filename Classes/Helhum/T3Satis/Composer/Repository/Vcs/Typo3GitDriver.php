@@ -50,7 +50,7 @@ class Typo3GitDriver extends GitDriver {
 			$_EXTKEY = $this->getExtensionKey();
 			eval('?>' . $emconf);
 
-			$composerInformation = $this->getComposerInformationFromEmConf($EM_CONF[$this->getExtensionKey()]);
+			$composerInformation = $this->getComposerInformationFromEmConf($EM_CONF[$this->getExtensionKey()], $identifier);
 			if (preg_match('{[a-f0-9]{40}}i', $identifier)) {
 				$this->cache->write($identifier, json_encode($composerInformation));
 			}
@@ -63,8 +63,8 @@ class Typo3GitDriver extends GitDriver {
 	}
 
 
-	protected function getComposerInformationFromEmConf($emconf) {
-		return array_merge(array(
+	protected function getComposerInformationFromEmConf($emconf, $identifier) {
+		$basicInfo = array(
 			'name' =>  $this->getPackageName($this->getExtensionKey()),
 			'description' => (string) $emconf['description'],
 			'version' => (string) $emconf['version'],
@@ -72,14 +72,13 @@ class Typo3GitDriver extends GitDriver {
 //			'time' => date('Y-m-d H:i:s', (int) $version->lastuploaddate),
 			'authors' => array(
 				array(
-					'name' => (string) $emconf['author'],
-					'email' => (string) $emconf['author_email'],
-					'company' => (string) $emconf['author_company'],
+					'name' => isset($emconf['author']) ? $emconf['author'] : '',
+					'email' => isset($emconf['author_email']) ? $emconf['author_email'] : '',
+					'company' => isset($emconf['author_company']) ? $emconf['author_company'] : '',
 //					'username' => (string) $version->ownerusername,
 				)
-			)),
-			$this->getPackageLinks($emconf['constraints']),
-			array(
+			));
+		$replaceInfo = array(
 				'replace' => array(
 					(string) $this->getExtensionKey() => (string) $emconf['version'],
 					'typo3-ext/' . $this->getExtensionKey() => (string) $emconf['version'],
@@ -89,8 +88,18 @@ class Typo3GitDriver extends GitDriver {
 //					'url' => 'http://typo3.org/extensions/repository/download/' . $extension['extensionkey'] . '/' . $version['version'] . '/t3x/',
 //					'type' => 't3x',
 //				),
-			)
-		);
+			);
+		$extra = array();
+		if (!preg_match('{[a-f0-9]{40}}i', $identifier) && $identifier === 'master') {
+			$extra = array(
+				'extra' => array(
+					'branch-alias' => array(
+						'dev-master' => $emconf['version']
+					)
+				)
+			);
+		}
+		return array_merge($basicInfo, $this->getPackageLinks($emconf['constraints']), $replaceInfo, $extra);
 	}
 
 	/**
@@ -157,8 +166,66 @@ class Typo3GitDriver extends GitDriver {
 				return 'php';
 			case 'typo3':
 				return 'typo3/cms';
-			default:
+			case 'about':
+			case 'aboutmodules':
+			case 'adodb':
+			case 'backend':
+			case 'belog':
+			case 'beuser':
+			case 'cms':
+			case 'context_help':
+			case 'core':
+			case 'cshmanual':
+			case 'css_styled_content':
+			case 'dbal':
+			case 'documentation':
+			case 'extbase':
+			case 'extentionmanager':
+			case 'extra_page_cm_options':
+			case 'feedit':
+			case 'felogin':
+			case 'filelist':
+			case 'filemetadata':
+			case 'fluid':
+			case 'form':
+			case 'func':
+			case 'func_wizards':
+			case 'impexp':
+			case 'indexed_search':
+			case 'indexed_search_mysql':
+			case 'info':
+			case 'info_pagetsconfig':
+			case 'install':
+			case 'lang':
+			case 'linkvalidator':
+			case 'lowlevel':
+			case 'opendocs':
+			case 'perm':
+			case 'recordlist':
+			case 'recycler':
+			case 'reports':
+			case 'rsaauth':
+			case 'rtehtmlarea':
+			case 'saltedpasswords':
+			case 'scheduler':
+			case 'setup':
+			case 'sv':
+			case 'sys_action':
+			case 'sys_note':
+			case 't3editor':
+			case 't3skin':
+			case 'taskcenter':
+			case 'tstemplate':
+			case 'version':
+			case 'viewpage':
+			case 'wizard_crpages':
+			case 'wizard_sortpages':
+			case 'workspaces':
+				return 'typo3/cms-' . $extensionKey;
+			case $this->getExtensionKey():
 				return isset($this->repoConfig['composerName']) ? $this->repoConfig['composerName'] : self::PACKAGE_NAME_PREFIX . str_replace('_', '-', $extensionKey);
+			default:
+				return self::PACKAGE_NAME_PREFIX . str_replace('_', '-', $extensionKey);
 		}
 	}
 
