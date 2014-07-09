@@ -38,6 +38,7 @@ class Typo3GitDriver extends GitDriver {
 
 	const PACKAGE_TYPE = 'typo3-cms-extension';
 
+
 	public function getComposerInformation($identifier) {
 		$composerInformation = parent::getComposerInformation($identifier);
 		if (!$composerInformation) {
@@ -90,16 +91,34 @@ class Typo3GitDriver extends GitDriver {
 //				),
 			);
 		$extra = array();
-		if (!preg_match('{[a-f0-9]{40}}i', $identifier) && $identifier === 'master') {
+		if ($this->shoudAlias($emconf, $identifier)) {
 			$extra = array(
 				'extra' => array(
 					'branch-alias' => array(
-						'dev-master' => $emconf['version']
+						'dev-master' => substr(str_replace('-dev', '', $emconf['version']), 0, -1) . 'x-dev'
 					)
 				)
 			);
 		}
-		return array_merge($basicInfo, $this->getPackageLinks($emconf['constraints']), $replaceInfo, $extra);
+
+		$additionalRootConfig = isset($this->repoConfig['config']['root-config']) ? $this->repoConfig['config']['root-config'] : array();
+
+		return array_merge($basicInfo, $this->getPackageLinks($emconf['constraints']), $replaceInfo, $extra, $additionalRootConfig);
+	}
+
+	protected function shoudAlias($emconf, $identifier) {
+		$branches = $this->getBranches();
+		$tags = $this->getTags();
+		$version = str_replace('-dev', '', $emconf['version']);
+		if (isset($branches[$version]) || isset($tags[$version])) {
+			return false;
+		}
+		$branchName = array_search($identifier, $branches);
+		if ($identifier === 'master' || $branchName === 'master') {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -223,7 +242,7 @@ class Typo3GitDriver extends GitDriver {
 			case 'workspaces':
 				return 'typo3/cms-' . $extensionKey;
 			case $this->getExtensionKey():
-				return isset($this->repoConfig['composerName']) ? $this->repoConfig['composerName'] : self::PACKAGE_NAME_PREFIX . str_replace('_', '-', $extensionKey);
+				return isset($this->repoConfig['config']['composerName']) ? $this->repoConfig['config']['composerName'] : self::PACKAGE_NAME_PREFIX . str_replace('_', '-', $extensionKey);
 			default:
 				return self::PACKAGE_NAME_PREFIX . str_replace('_', '-', $extensionKey);
 		}
@@ -233,6 +252,6 @@ class Typo3GitDriver extends GitDriver {
 	 * @return string
 	 */
 	protected function getExtensionKey() {
-		return isset($this->repoConfig['extKey']) ? $this->repoConfig['extKey'] : str_replace('.git', '', basename($this->url));
+		return isset($this->repoConfig['config']['extKey']) ? $this->repoConfig['config']['extKey'] : str_replace('.git', '', basename($this->url));
 	}
 }
