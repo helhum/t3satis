@@ -48,6 +48,7 @@ class Typo3OrgRepositoryCollection {
 		$items = $DOM->getElementsByTagName('a');
 		for ($i = 0; $i < $items->length; $i++) {
 			if (strpos($items->item($i)->nodeValue, self::EXTENSION_PREFIX) === 0) {
+				xdebug_break();
 				$repoEntries[] = array(
 					'type' => 't3git',
 					'url' => self::GIT_REPO_PREFIX . $items->item($i)->nodeValue
