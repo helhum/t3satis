@@ -32,31 +32,21 @@ namespace Helhum\T3Satis\Composer\Repository;
  */
 class Typo3OrgRepositoryCollection {
 
-	const REPO_URL = 'https://git.typo3.org';
-	const GIT_REPO_PREFIX = 'git://git.typo3.org/';
-	const EXTENSION_PREFIX = 'TYPO3CMS/Extensions/';
-
 	public function fetchRepositoryConfiguration() {
-
-		$pageContent = file_get_contents(self::REPO_URL);
-
-		$DOM = new \DOMDocument();
-		$resultString = mb_convert_encoding($pageContent, 'html-entities', 'utf-8');
-		$DOM->loadHTML($resultString);
-		$repoEntries = array();
-
-		$items = $DOM->getElementsByTagName('a');
-		for ($i = 0; $i < $items->length; $i++) {
-			if (strpos($items->item($i)->nodeValue, self::EXTENSION_PREFIX) === 0) {
-				xdebug_break();
-				$repoEntries[] = array(
-					'type' => 't3git',
-					'url' => self::GIT_REPO_PREFIX . $items->item($i)->nodeValue
-				);
-			}
-		}
-
-		return $repoEntries;
+		return array(
+			array(
+				'type' => 't3git',
+				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/news.git'
+			),
+			array(
+				'type' => 't3git',
+				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/extension_builder.git'
+			),
+			array(
+				'type' => 't3git',
+				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/gridelements.git'
+			),
+		);
 	}
 
 } 
