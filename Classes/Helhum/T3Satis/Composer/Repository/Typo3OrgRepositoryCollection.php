@@ -36,15 +36,30 @@ class Typo3OrgRepositoryCollection {
 		return array(
 			array(
 				'type' => 't3git',
-				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/news.git'
+				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/news.git',
+				'config' => array(
+					'packageNameMapping' => array(
+						'self' => 'typo3-git/news'
+					)
+				)
 			),
 			array(
 				'type' => 't3git',
-				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/extension_builder.git'
+				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/extension_builder.git',
+				'config' => array(
+					'packageNameMapping' => array(
+						'self' => 'typo3-git/extension_builder'
+					)
+				)
 			),
 			array(
 				'type' => 't3git',
-				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/gridelements.git'
+				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/gridelements.git',
+				'config' => array(
+					'packageNameMapping' => array(
+						'self' => 'typo3-git/gridelements'
+					)
+				)
 			),
 		);
 	}

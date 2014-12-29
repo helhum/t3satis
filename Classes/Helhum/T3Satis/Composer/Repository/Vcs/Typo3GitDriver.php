@@ -34,7 +34,7 @@ use Composer\Repository\Vcs\GitDriver;
  */
 class Typo3GitDriver extends GitDriver {
 
-	const PACKAGE_NAME_PREFIX = 'typo3-git/';
+	const PACKAGE_NAME_PREFIX = 'typo3-ter/';
 
 	const PACKAGE_TYPE = 'typo3-cms-extension';
 
@@ -106,26 +106,24 @@ class Typo3GitDriver extends GitDriver {
 			'description' => (string) $emconf['description'],
 			'version' => (string) $emconf['version'],
 			'type' => self::PACKAGE_TYPE,
-//			'time' => date('Y-m-d H:i:s', (int) $version->lastuploaddate),
 			'authors' => array(
 				array(
 					'name' => isset($emconf['author']) ? $emconf['author'] : '',
 					'email' => isset($emconf['author_email']) ? $emconf['author_email'] : '',
 					'company' => isset($emconf['author_company']) ? $emconf['author_company'] : '',
-//					'username' => (string) $version->ownerusername,
 				)
 			));
 		$replaceInfo = array(
 				'replace' => array(
 					(string) $this->getExtensionKey() => (string) $emconf['version'],
 					'typo3-ext/' . $this->getExtensionKey() => (string) $emconf['version'],
-//					'typo3-ter/' . (string) $this->getPackageName($this->getExtensionKey()) => (string) $emconf['version'],
 				),
-//				'dist' => array(
-//					'url' => 'http://typo3.org/extensions/repository/download/' . $extension['extensionkey'] . '/' . $version['version'] . '/t3x/',
-//					'type' => 't3x',
-//				),
 			);
+
+		if (strpos($basicInfo['name'], self::PACKAGE_NAME_PREFIX) !== 0) {
+			$replaceInfo['replace'][self::PACKAGE_NAME_PREFIX . str_replace('_', '-', $this->getExtensionKey())] = (string)$emconf['version'];
+		}
+
 		$extra = array();
 		if ($this->shoudAlias($emconf, $identifier)) {
 			$extra = array(
