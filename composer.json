@@ -15,7 +15,8 @@
     "bin": ["bin/t3satis"],
     "require": {
         "php": ">=5.3.2",
-        "composer/satis": "dev-master@dev"
+        "composer/satis": "dev-master@dev",
+        "composer/composer": "1.0.*@dev"
     },
     "autoload": {
         "psr-0": { "Helhum\\T3Satis": "Classes/" }
