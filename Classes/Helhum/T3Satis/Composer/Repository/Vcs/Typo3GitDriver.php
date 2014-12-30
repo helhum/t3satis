@@ -28,6 +28,7 @@ namespace Helhum\T3Satis\Composer\Repository\Vcs;
  ***************************************************************/
 
 use Composer\Repository\Vcs\GitDriver;
+use Helhum\T3Satis\TYPO3\Extension\EmConfReader;
 
 /**
  * Class Typo3GitDriver
@@ -46,23 +47,28 @@ class Typo3GitDriver extends GitDriver {
 	public function getComposerInformation($identifier) {
 		$this->buildNameMapping();
 		$composerInformation = parent::getComposerInformation($identifier);
+
 		if (!$composerInformation) {
 			$resource = sprintf('%s:ext_emconf.php', escapeshellarg($identifier));
-			$this->process->execute(sprintf('git show %s', $resource), $emconf, $this->repoDir);
-			if (!trim($emconf)) {
+			$this->process->execute(sprintf('git show %s', $resource), $emConf, $this->repoDir);
+			if (!trim($emConf)) {
+				// No emconf at all, we skip
 				return;
 			}
-			$EM_CONF = array();
-			$_EXTKEY = $this->getExtensionKey();
-			eval('?>' . $emconf);
+			$emConfConverter = new EmConfReader();
+			$extensionConfig = $emConfConverter->readFromString($emConf);
+			if (empty($extensionConfig) || !preg_match('/^[\d]+\.[\d]+(\.[\d])*$/', str_replace('-dev', '', $extensionConfig['version']))) {
+				// Could not read extension config or invalid version number, we skip
+				return;
+			}
 
-			$composerInformation = $this->getComposerInformationFromEmConf($EM_CONF[$this->getExtensionKey()], $identifier);
+			$composerInformation = $this->getComposerInformationFromEmConf($extensionConfig, $identifier);
+
 			if (preg_match('{[a-f0-9]{40}}i', $identifier)) {
 				$this->cache->write($identifier, json_encode($composerInformation));
 			}
 
 			$this->infoCache[$identifier] = $composerInformation;
-
 		}
 
 		return $composerInformation;
@@ -79,7 +85,6 @@ class Typo3GitDriver extends GitDriver {
 				if ($url === 'self') {
 					$url = $this->url;
 				}
-
 				$this->extensionKeyMapping[$url] = $extensionKey;
 			}
 		}
@@ -93,66 +98,74 @@ class Typo3GitDriver extends GitDriver {
 				if ($extensionKey === 'self') {
 					$extensionKey = $this->getExtensionKey();
 				}
-
 				$this->packageNameMapping[$extensionKey] = $packageName;
 			}
 		}
 	}
 
-
-	protected function getComposerInformationFromEmConf($emconf, $identifier) {
+	protected function getComposerInformationFromEmConf($emConf, $identifier) {
 		$basicInfo = array(
 			'name' =>  $this->getPackageName($this->getExtensionKey()),
-			'description' => (string) $emconf['description'],
-			'version' => (string) $emconf['version'],
+			'description' => (string) $emConf['description'],
+			'version' => (string) $emConf['version'],
 			'type' => self::PACKAGE_TYPE,
 			'authors' => array(
 				array(
-					'name' => isset($emconf['author']) ? $emconf['author'] : '',
-					'email' => isset($emconf['author_email']) ? $emconf['author_email'] : '',
-					'company' => isset($emconf['author_company']) ? $emconf['author_company'] : '',
+					'name' => isset($emConf['author']) ? $emConf['author'] : '',
+					'email' => isset($emConf['author_email']) ? $emConf['author_email'] : '',
+					'company' => isset($emConf['author_company']) ? $emConf['author_company'] : '',
 				)
 			));
 		$replaceInfo = array(
 				'replace' => array(
-					(string) $this->getExtensionKey() => (string) $emconf['version'],
-					'typo3-ext/' . $this->getExtensionKey() => (string) $emconf['version'],
+					(string) $this->getExtensionKey() => (string) $emConf['version'],
+					'typo3-ext/' . $this->getExtensionKey() => (string) $emConf['version'],
 				),
 			);
 
 		if (strpos($basicInfo['name'], self::PACKAGE_NAME_PREFIX) !== 0) {
-			$replaceInfo['replace'][self::PACKAGE_NAME_PREFIX . str_replace('_', '-', $this->getExtensionKey())] = (string)$emconf['version'];
+			$replaceInfo['replace'][self::PACKAGE_NAME_PREFIX . str_replace('_', '-', $this->getExtensionKey())] = (string)$emConf['version'];
 		}
 
-		$extra = array();
-		if ($this->shoudAlias($emconf, $identifier)) {
-			$extra = array(
+		$branchAlias = $this->buildBranchAlias($emConf, $identifier);
+		if ($branchAlias === FALSE) {
+			$aliasInfo = array();
+		} else {
+			$aliasInfo = array(
 				'extra' => array(
-					'branch-alias' => array(
-						'dev-master' => substr(str_replace('-dev', '', $emconf['version']), 0, -1) . 'x-dev'
-					)
+					'branch-alias' => $branchAlias
 				)
 			);
 		}
 
 		$additionalRootConfig = isset($this->repoConfig['config']['root-config']) ? $this->repoConfig['config']['root-config'] : array();
 
-		return array_merge($basicInfo, $this->getPackageLinks($emconf['constraints']), $replaceInfo, $extra, $additionalRootConfig);
+		return array_merge($basicInfo, $this->getPackageLinks($emConf['constraints']), $replaceInfo, $aliasInfo, $additionalRootConfig);
 	}
 
-	protected function shoudAlias($emconf, $identifier) {
+	protected function buildBranchAlias($emConf, $identifier) {
 		$branches = $this->getBranches();
 		$tags = $this->getTags();
-		$version = str_replace('-dev', '', $emconf['version']);
-		if (isset($branches[$version]) || isset($tags[$version])) {
-			return false;
-		}
-		$branchName = array_search($identifier, $branches);
-		if ($identifier === 'master' || $branchName === 'master') {
-			return true;
+
+		$branchName = isset($branches[$identifier]) ? $identifier : array_search($identifier, $branches);
+		$tagName = isset($tags[$identifier]) ? $identifier : array_search($identifier, $tags);
+
+		if (!empty($tagName) || empty($branchName)) {
+			return FALSE;
 		}
 
-		return false;
+		$version = str_replace('-dev', '', $emConf['version']);
+		$versionParts = array_map('intval', explode('.', $version));
+		$versionParts[2] = 'x';
+		$devBranchVersion = implode('.', $versionParts) . '-dev';
+
+		if ($devBranchVersion !== $branchName) {
+			return array(
+				'dev-' . $branchName => $devBranchVersion
+			);
+		}
+
+		return FALSE;
 	}
 
 	/**
