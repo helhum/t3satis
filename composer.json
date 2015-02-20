@@ -22,6 +22,6 @@
         "psr-0": { "Helhum\\T3Satis": "Classes/" }
     },
     "autoload-dev": {
-        "psr-4": { "Helhum\\T3Satis\\Test": "Tests/" }
+        "psr-4": { "Helhum\\T3Satis\\Test\\": "Tests/" }
     }
 }
