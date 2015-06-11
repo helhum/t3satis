@@ -36,6 +36,15 @@ class Typo3OrgRepositoryCollection {
 		return array(
 			array(
 				'type' => 't3git',
+				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/sf_register.git',
+				'config' => array(
+					'packageNameMapping' => array(
+						'self' => 'typo3-git/sf-register'
+					)
+				)
+			),
+			array(
+				'type' => 't3git',
 				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/news.git',
 				'config' => array(
 					'packageNameMapping' => array(
