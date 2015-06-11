@@ -115,7 +115,11 @@ class Typo3GitDriver extends GitDriver {
 					'email' => isset($emConf['author_email']) ? $emConf['author_email'] : '',
 					'company' => isset($emConf['author_company']) ? $emConf['author_company'] : '',
 				)
-			));
+			),
+			'autoload' => array(
+				'classmap' => array('')
+			)
+		);
 		$replaceInfo = array(
 				'replace' => array(
 					(string) $this->getExtensionKey() => (string) $emConf['version'],
