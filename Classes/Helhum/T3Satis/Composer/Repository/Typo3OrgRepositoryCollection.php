@@ -39,7 +39,7 @@ class Typo3OrgRepositoryCollection {
 				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/sf_register.git',
 				'config' => array(
 					'packageNameMapping' => array(
-						'self' => 'typo3-git/sf-register'
+						'self' => 'typo3-ter/sf-register'
 					)
 				)
 			),
@@ -48,7 +48,7 @@ class Typo3OrgRepositoryCollection {
 				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/news.git',
 				'config' => array(
 					'packageNameMapping' => array(
-						'self' => 'typo3-git/news'
+						'self' => 'typo3-ter/news'
 					)
 				)
 			),
@@ -57,7 +57,7 @@ class Typo3OrgRepositoryCollection {
 				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/extension_builder.git',
 				'config' => array(
 					'packageNameMapping' => array(
-						'self' => 'typo3-git/extension_builder'
+						'self' => 'typo3-ter/extension-builder'
 					)
 				)
 			),
@@ -66,7 +66,7 @@ class Typo3OrgRepositoryCollection {
 				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/gridelements.git',
 				'config' => array(
 					'packageNameMapping' => array(
-						'self' => 'typo3-git/gridelements'
+						'self' => 'typo3-ter/gridelements'
 					)
 				)
 			),
