@@ -27,45 +27,15 @@ namespace Helhum\T3Satis\Composer\Repository;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-use Composer\Config;
-use Composer\EventDispatcher\EventDispatcher;
-use Composer\IO\IOInterface;
-use Composer\Repository\InvalidRepositoryException;
-use Composer\Repository\VcsRepository;
-
 /**
- * Class Typo3ExtensionRepository
+ * Interface RepositoryCollectionInterface
  */
-class Typo3ExtensionRepository extends VcsRepository {
+interface RepositoryCollectionInterface {
 
 	/**
-	 * @var array of URLs of repos with no meta info in them
+	 * Must return an array of repositories with "type" "url" and "config" properties each
+	 *
+	 * @return array
 	 */
-	static protected $blacklist = array();
-
-	/**
-	 * @param array $repoConfig
-	 * @param IOInterface $io
-	 * @param Config $config
-	 * @param EventDispatcher $dispatcher
-	 * @param array $drivers
-	 */
-	public function __construct(array $repoConfig, IOInterface $io, Config $config, EventDispatcher $dispatcher = null, array $drivers = null) {
-		parent::__construct($repoConfig, $io, $config, $dispatcher, $drivers);
-		$this->drivers['t3git'] = 'Helhum\T3Satis\Composer\Repository\Vcs\Typo3GitDriver';
-	}
-
-	/**
-	 * Intercept exceptions to be able to backlist some repos
-	 */
-	protected function initialize() {
-		try {
-			parent::initialize();
-		} catch (InvalidRepositoryException $e) {
-			self::$blacklist[] = $this->url;
-			// Todo: handle this info somehow!
-			throw $e;
-		}
-	}
-
-} 
+	public function fetchRepositoryConfiguration();
+}

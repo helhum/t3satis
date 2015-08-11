@@ -30,47 +30,62 @@ namespace Helhum\T3Satis\Composer\Repository;
 /**
  * Class Typo3OrgRepositoryCollection
  */
-class Typo3OrgRepositoryCollection {
+class Typo3OrgRepositoryCollection implements RepositoryCollectionInterface {
 
+	const TYPO3_ORG_REPO_PATTERN = 'http://git.typo3.org/%s.git';
+
+	/**
+	 * Adds all git.typo3.org extension git repos
+	 *
+	 * @return array
+	 */
 	public function fetchRepositoryConfiguration() {
-		return array(
-			array(
+		$client = new \GuzzleHttp\Client();
+		$res = $client->get('https://review.typo3.org/projects/?m=TYPO3CMS%2FExtensions%2F');
+
+		$repos = json_decode(str_replace(")]}'\n", '', (string)$res->getBody()), TRUE);
+
+		if (!is_array($repos)) {
+			throw new \RuntimeException('Could not fetch typo3.org repos', 1439301580);
+		}
+
+		$allRepos = array();
+		foreach (array_keys($repos) as $repo) {
+			$repoUrl = sprintf(self::TYPO3_ORG_REPO_PATTERN, $repo);
+			$allRepos[] = array(
 				'type' => 't3git',
-				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/sf_register.git',
+				'url' => $repoUrl,
 				'config' => array(
 					'packageNameMapping' => array(
-						'self' => 'typo3-ter/sf-register'
+						'self' => $this->getPackageKeyFromRepoUrl($repoUrl)
 					)
 				)
-			),
-			array(
-				'type' => 't3git',
-				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/news.git',
-				'config' => array(
-					'packageNameMapping' => array(
-						'self' => 'typo3-ter/news'
-					)
-				)
-			),
-			array(
-				'type' => 't3git',
-				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/extension_builder.git',
-				'config' => array(
-					'packageNameMapping' => array(
-						'self' => 'typo3-ter/extension-builder'
-					)
-				)
-			),
-			array(
-				'type' => 't3git',
-				'url' => 'git://git.typo3.org/TYPO3CMS/Extensions/gridelements.git',
-				'config' => array(
-					'packageNameMapping' => array(
-						'self' => 'typo3-ter/gridelements'
-					)
-				)
-			),
-		);
+			);
+		}
+
+		//TODO: validate the repos first (and cache the validation result)
+		return $allRepos;
+	}
+
+	/**
+	 * @param string $repoUrl
+	 * @return string
+	 */
+	protected function getPackageKeyFromRepoUrl($repoUrl) {
+		$parts = explode('/', $repoUrl);
+		return 'typo3-ter/' . str_replace(array('.git', '_'), array('', '-'), self::camelCaseToLowerCaseUnderscored(array_pop($parts)));
+	}
+
+
+	/**
+	 * Returns a given CamelCasedString as an lowercase string with underscores.
+	 * Example: Converts BlogExample to blog_example, and minimalValue to minimal_value
+	 *
+	 * @param string $string String to be converted to lowercase underscore
+	 * @return string lowercase_and_underscored_string
+	 */
+	static public function camelCaseToLowerCaseUnderscored($string) {
+		return strtolower(preg_replace('/(?<=\\w)([A-Z])/', '_\\1', $string));
 	}
 
 } 
