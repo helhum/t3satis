@@ -36,3 +36,12 @@ Repository Generator with support for TYPO3 CMS extension (git) repositories
 }
 
 ```
+
+## Usage
+
+- Download [Composer](https://getcomposer.org/download/): `curl -sS https://getcomposer.org/installer | php`
+- Install satis: `php composer.phar create-project helhum/t3satis --stability=dev --keep-vcs`
+- Build a repository: `php bin/t3satis build <configuration file> <build-dir>`
+
+Read the more detailed instructions in the 
+[satis documentation](http://getcomposer.org/doc/articles/handling-private-packages-with-satis.md).
