@@ -63,7 +63,10 @@ class Typo3GitDriver extends GitDriver {
 			}
 
 			$composerInformation = $this->getComposerInformationFromEmConf($extensionConfig, $identifier);
-
+			if (false === json_encode($composerInformation, 448)) {
+				// Most likely wrong encoding (not UTF-8) which we cannot fix here
+				return;
+			}
 			if (preg_match('{[a-f0-9]{40}}i', $identifier)) {
 				$this->cache->write($identifier, json_encode($composerInformation));
 			}
