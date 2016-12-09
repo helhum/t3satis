@@ -3,6 +3,8 @@
 use Helhum\T3Satis\Console\Application;
 
 $possibleLocations = array(
+        __DIR__.'/../vendor/autoload.php',
+        __DIR__.'/../../../autoload.php',
 	__DIR__.'/../vendor/composer/satis/src/bootstrap.php',
 	__DIR__.'/../../../composer/satis/src/bootstrap.php',
 );
